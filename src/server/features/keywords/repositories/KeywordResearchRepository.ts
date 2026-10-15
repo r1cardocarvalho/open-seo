@@ -21,6 +21,10 @@ import {
   SavedKeywordTagsRepository,
   type SavedKeywordTagRecord,
 } from "./SavedKeywordTagsRepository";
+import {
+  updateSavedKeywordNote,
+  updateSavedKeywordPriority,
+} from "./savedKeywordUpdates";
 
 type SavedKeywordRecord = typeof savedKeywords.$inferSelect;
 type KeywordMetricRecord = typeof keywordMetrics.$inferSelect;
@@ -35,6 +39,8 @@ type SavedKeywordsListParams = {
   maxCpc?: number | null;
   minDifficulty?: number | null;
   maxDifficulty?: number | null;
+  minPriority?: number | null;
+  maxPriority?: number | null;
   tagIds?: string[];
   tagNames?: string[];
   page?: number;
@@ -50,13 +56,35 @@ type SavedKeywordSortField =
   | "cpc"
   | "competition"
   | "keywordDifficulty"
-  | "fetchedAt";
+  | "fetchedAt"
+  | "priority";
 
 type SavedKeywordListRow = {
   row: SavedKeywordRecord;
   metric: KeywordMetricRecord | null;
   tags: SavedKeywordTagRecord[];
 };
+
+async function getKeywordMetric(params: {
+  projectId: string;
+  keyword: string;
+  locationCode: number;
+  languageCode: string;
+}) {
+  const [row] = await db
+    .select()
+    .from(keywordMetrics)
+    .where(
+      and(
+        eq(keywordMetrics.projectId, params.projectId),
+        eq(keywordMetrics.keyword, params.keyword),
+        eq(keywordMetrics.locationCode, params.locationCode),
+        eq(keywordMetrics.languageCode, params.languageCode),
+      ),
+    )
+    .limit(1);
+  return row ?? null;
+}
 
 async function upsertKeywordMetric(params: {
   projectId: string;
@@ -155,6 +183,8 @@ function buildSavedKeywordWhere(params: {
   maxCpc?: number | null;
   minDifficulty?: number | null;
   maxDifficulty?: number | null;
+  minPriority?: number | null;
+  maxPriority?: number | null;
   tagIds?: string[];
 }) {
   const clauses: SQL[] = [eq(savedKeywords.projectId, params.projectId)];
@@ -196,6 +226,12 @@ function buildSavedKeywordWhere(params: {
   if (params.maxDifficulty != null) {
     clauses.push(lte(keywordMetrics.keywordDifficulty, params.maxDifficulty));
   }
+  if (params.minPriority != null) {
+    clauses.push(gte(savedKeywords.priority, params.minPriority));
+  }
+  if (params.maxPriority != null) {
+    clauses.push(lte(savedKeywords.priority, params.maxPriority));
+  }
   if (params.tagIds && params.tagIds.length > 0) {
     clauses.push(
       sql`exists (
@@ -212,24 +248,30 @@ function buildSavedKeywordWhere(params: {
 function buildSavedKeywordOrderBy(
   sort: SavedKeywordSortField = "createdAt",
   order: "asc" | "desc" = "desc",
-) {
+): SQL[] {
   const direction = order === "asc" ? asc : desc;
   switch (sort) {
     case "keyword":
-      return direction(savedKeywords.keyword);
+      return [direction(savedKeywords.keyword)];
     case "searchVolume":
-      return direction(keywordMetrics.searchVolume);
+      return [direction(keywordMetrics.searchVolume)];
     case "cpc":
-      return direction(keywordMetrics.cpc);
+      return [direction(keywordMetrics.cpc)];
     case "competition":
-      return direction(keywordMetrics.competition);
+      return [direction(keywordMetrics.competition)];
     case "keywordDifficulty":
-      return direction(keywordMetrics.keywordDifficulty);
+      return [direction(keywordMetrics.keywordDifficulty)];
     case "fetchedAt":
-      return direction(keywordMetrics.fetchedAt);
+      return [direction(keywordMetrics.fetchedAt)];
+    case "priority":
+      // Empty priority stays at the end in both dialects.
+      return [
+        sql`case when ${savedKeywords.priority} is null then 1 else 0 end`,
+        direction(savedKeywords.priority),
+      ];
     case "createdAt":
     default:
-      return direction(savedKeywords.createdAt);
+      return [direction(savedKeywords.createdAt)];
   }
 }
 
@@ -260,6 +302,8 @@ async function listSavedKeywordsByProject(
     maxCpc: params.maxCpc,
     minDifficulty: params.minDifficulty,
     maxDifficulty: params.maxDifficulty,
+    minPriority: params.minPriority,
+    maxPriority: params.maxPriority,
     tagIds,
   });
 
@@ -282,7 +326,7 @@ async function listSavedKeywordsByProject(
     .leftJoin(keywordMetrics, metricJoin)
     .where(where)
     .orderBy(
-      buildSavedKeywordOrderBy(params.sort, params.order),
+      ...buildSavedKeywordOrderBy(params.sort, params.order),
       asc(savedKeywords.id),
     );
 
@@ -362,6 +406,7 @@ async function removeSavedKeywords(
 }
 
 export const KeywordResearchRepository = {
+  getKeywordMetric,
   upsertKeywordMetric,
   countSavedKeywords,
   saveKeywordsToProject,
@@ -373,6 +418,8 @@ export const KeywordResearchRepository = {
     SavedKeywordTagsRepository.removeTagsFromSavedKeywords,
   removeAllTagsFromSavedKeywords:
     SavedKeywordTagsRepository.removeAllTagsFromSavedKeywords,
+  updateSavedKeywordNote,
+  updateSavedKeywordPriority,
   updateSavedKeywordTag: SavedKeywordTagsRepository.updateSavedKeywordTag,
   deleteSavedKeywordTag: SavedKeywordTagsRepository.deleteSavedKeywordTag,
   removeSavedKeywords,

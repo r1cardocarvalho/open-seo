@@ -1,0 +1,1 @@
+ALTER TABLE "saved_keywords" ADD COLUMN "priority" integer;

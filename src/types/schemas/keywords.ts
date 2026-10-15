@@ -17,6 +17,7 @@ const savedKeywordSortFields = [
   "competition",
   "keywordDifficulty",
   "fetchedAt",
+  "priority",
 ] as const;
 const sortDirs = ["asc", "desc"] as const;
 const savedKeywordPageSizeSchema = z.union([
@@ -103,6 +104,8 @@ export const getSavedKeywordsSchema = z.object({
   maxCpc: z.number().nonnegative().nullable().optional(),
   minDifficulty: z.number().int().min(0).max(100).nullable().optional(),
   maxDifficulty: z.number().int().min(0).max(100).nullable().optional(),
+  minPriority: z.number().int().min(1).max(10).nullable().optional(),
+  maxPriority: z.number().int().min(1).max(10).nullable().optional(),
   tagIds: z.array(z.string().min(1)).max(50).optional(),
   tagNames: z.array(savedKeywordTagSchema).max(50).optional(),
   page: z.number().int().positive().default(1),
@@ -124,6 +127,8 @@ export const savedKeywordsSearchSchema = z.object({
   maxCpc: optionalSearchNumberParam,
   minKd: optionalSearchNumberParam,
   maxKd: optionalSearchNumberParam,
+  minPriority: optionalSearchNumberParam,
+  maxPriority: optionalSearchNumberParam,
   tags: z.array(z.string()).optional().catch(undefined),
   sort: z.enum(savedKeywordSortFields).optional().catch(undefined),
   order: z.enum(sortDirs).optional().catch(undefined),
@@ -167,6 +172,18 @@ export const updateSavedKeywordTagSchema = z
     "Provide a name or color to update.",
   );
 
+export const updateSavedKeywordNoteSchema = z.object({
+  projectId: z.string().min(1),
+  savedKeywordId: z.string().min(1),
+  notes: z.string().trim().max(2000),
+});
+
+export const updateSavedKeywordPrioritySchema = z.object({
+  projectId: z.string().min(1),
+  savedKeywordId: z.string().min(1),
+  priority: z.number().int().min(1).max(10).nullable(),
+});
+
 export const deleteSavedKeywordTagSchema = z.object({
   projectId: z.string().min(1),
   tagId: z.string().min(1),
@@ -195,6 +212,12 @@ export type RemoveSavedKeywordsInput = z.infer<
 export type GetSavedKeywordsInput = z.infer<typeof getSavedKeywordsSchema>;
 export type ExportSavedKeywordsInput = z.infer<
   typeof exportSavedKeywordsSchema
+>;
+export type UpdateSavedKeywordNoteInput = z.infer<
+  typeof updateSavedKeywordNoteSchema
+>;
+export type UpdateSavedKeywordPriorityInput = z.infer<
+  typeof updateSavedKeywordPrioritySchema
 >;
 export type UpdateSavedKeywordTagsInput = z.infer<
   typeof updateSavedKeywordTagsSchema

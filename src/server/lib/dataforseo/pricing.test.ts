@@ -8,6 +8,17 @@ const location = { locationCode: 2840, languageCode: "en" };
 describe("dataforseoPricing", () => {
   it.each([
     {
+      name: "SERP authority, one bulk task for ten URLs",
+      estimateUsd: dataforseoPricing.backlinks.bulkPagesSummary({
+        targets: Array.from(
+          { length: 10 },
+          (_, i) => `https://example.com/${i}`,
+        ),
+      }),
+      rawUsd: 0.02436,
+      credits: 32,
+    },
+    {
       name: "Labs research, 500 rows with clickstream (incident shape)",
       estimateUsd: dataforseoPricing.keywords.related({
         keyword: "seo",

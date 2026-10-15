@@ -5,6 +5,7 @@ vi.mock("@/server/lib/runtime-env", () => ({
 }));
 
 import {
+  fetchBulkPagesSummary,
   fetchBacklinksRows,
   fetchBacklinksSummary,
 } from "@/server/lib/dataforseo/backlinks";
@@ -198,3 +199,52 @@ function expectValidationError(fn: () => unknown) {
 
   throw new Error("Expected normalizeBacklinksTarget to throw");
 }
+
+describe("fetchBulkPagesSummary", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("requests 0–100 scores and preserves page/domain ranks and billing", async () => {
+    const item = {
+      url: "https://example.com/page",
+      rank: 12,
+      main_domain_rank: 67,
+      backlinks: 34,
+      referring_domains: 8,
+    };
+    const path = ["v3", "backlinks", "bulk_pages_summary", "live"];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            status_code: 20000,
+            tasks: [
+              {
+                status_code: 20000,
+                path,
+                cost: 0.024036,
+                result_count: 1,
+                result: [{ items: [item] }],
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
+      ),
+    );
+    const result = await fetchBulkPagesSummary({ targets: [item.url] });
+    const body = vi.mocked(fetch).mock.calls[0][1]?.body;
+    if (typeof body !== "string")
+      throw new Error("Expected a JSON request body");
+    const payload: unknown = JSON.parse(body);
+    expect(payload).toEqual([
+      {
+        targets: [item.url],
+        rank_scale: "one_hundred",
+        include_subdomains: true,
+      },
+    ]);
+    expect(result.data).toEqual([item]);
+    expect(result.billing).toMatchObject({ costUsd: 0.024036 });
+  });
+});

@@ -24,6 +24,7 @@ import {
   postMyBusinessUpdatesTask,
 } from "@/server/lib/dataforseo/business";
 import {
+  fetchBulkPagesSummary,
   fetchBacklinksHistory,
   fetchBacklinksRows,
   fetchBacklinksSummary,
@@ -134,6 +135,11 @@ export function createDataforseoClient(customer: BillingCustomerContext) {
       ),
     },
     backlinks: {
+      bulkPagesSummary: meter(
+        customer,
+        fetchBulkPagesSummary,
+        dataforseoPricing.backlinks.bulkPagesSummary,
+      ),
       summary: meter(
         customer,
         fetchBacklinksSummary,

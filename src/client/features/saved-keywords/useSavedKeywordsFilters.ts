@@ -14,6 +14,8 @@ const FILTER_KEYS: Array<keyof SavedKeywordsFilterValues> = [
   "maxCpc",
   "minKd",
   "maxKd",
+  "minPriority",
+  "maxPriority",
 ];
 
 export function useSavedKeywordsFilters(

@@ -6,12 +6,7 @@ import {
 // Aliased: `SavedKeywordsPage` has a local `sort` const (the saved-keyword
 // sort key) that would otherwise shadow this import at the call site.
 import { sort as sortArray } from "remeda";
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type {
   OnChangeFn,
   RowSelectionState,
@@ -38,22 +33,16 @@ import {
   SAVED_KEYWORD_PAGE_SIZES,
   toSavedKeywordSort,
 } from "@/client/features/saved-keywords/savedKeywordsUtils";
+import { useSavedKeywordMutations } from "@/client/features/saved-keywords/useSavedKeywordMutations";
 import { useSavedKeywordsExport } from "@/client/features/saved-keywords/useSavedKeywordsExport";
 import { useSavedKeywordsFilters } from "@/client/features/saved-keywords/useSavedKeywordsFilters";
 import { useTagManage } from "@/client/features/saved-keywords/useTagManage";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import {
   filterValuesFromSearch,
   filterValuesToSearch,
   normalizeFilterValues,
 } from "@/client/lib/filterSearchParams";
-import { captureClientEvent } from "@/client/lib/posthog";
-import {
-  getSavedKeywords,
-  refreshSavedKeywordMetrics,
-  removeSavedKeywords,
-  updateSavedKeywordTags,
-} from "@/serverFunctions/keywords";
+import { getSavedKeywords } from "@/serverFunctions/keywords";
 import type { SavedKeywordTag } from "@/types/keywords";
 import {
   savedKeywordsSearchSchema,
@@ -89,7 +78,6 @@ function SavedKeywordsPage() {
   const { projectId } = Route.useParams();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
-  const queryClient = useQueryClient();
   const setSearch = (update: Partial<SavedKeywordsSearch>) => {
     void navigate({
       search: (prev) => ({ ...prev, ...update }),
@@ -107,21 +95,52 @@ function SavedKeywordsPage() {
   const pageSize = search.size ?? 50;
   const sorting = useMemo(() => sortingFromSearch(search), [search]);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [removeError, setRemoveError] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showTagModal, setShowTagModal] = useState(false);
 
-  const { include, exclude, minVol, maxVol, minCpc, maxCpc, minKd, maxKd } =
-    search;
+  const {
+    include,
+    exclude,
+    minVol,
+    maxVol,
+    minCpc,
+    maxCpc,
+    minKd,
+    maxKd,
+    minPriority,
+    maxPriority,
+  } = search;
   // Keyed on the filter params only, so a tag, sort, or page change keeps
   // the unapplied form draft.
   const committedFilterValues = useMemo(
     () =>
       filterValuesFromSearch(
-        { include, exclude, minVol, maxVol, minCpc, maxCpc, minKd, maxKd },
+        {
+          include,
+          exclude,
+          minVol,
+          maxVol,
+          minCpc,
+          maxCpc,
+          minKd,
+          maxKd,
+          minPriority,
+          maxPriority,
+        },
         EMPTY_SAVED_KEYWORDS_FILTERS,
       ),
-    [include, exclude, minVol, maxVol, minCpc, maxCpc, minKd, maxKd],
+    [
+      include,
+      exclude,
+      minVol,
+      maxVol,
+      minCpc,
+      maxCpc,
+      minKd,
+      maxKd,
+      minPriority,
+      maxPriority,
+    ],
   );
   const filters = useSavedKeywordsFilters(committedFilterValues);
   const committedFilterKey = JSON.stringify(committedFilterValues);
@@ -222,60 +241,22 @@ function SavedKeywordsPage() {
     setRowSelection({});
   }, [page, pageSize, appliedFilters, tagFilterKey, sort, order]);
 
-  const invalidateSavedKeywords = () =>
-    queryClient.invalidateQueries({ queryKey: ["savedKeywords", projectId] });
-
-  const removeMutation = useMutation({
-    mutationFn: (savedKeywordIds: string[]) =>
-      removeSavedKeywords({ data: { projectId, savedKeywordIds } }),
-    onSuccess: (result) => {
+  const {
+    removeError,
+    removeMutation,
+    noteMutation,
+    priorityMutation,
+    tagMutation,
+    refreshMetricsMutation,
+  } = useSavedKeywordMutations({
+    projectId,
+    onRemoved: () => {
       setRowSelection({});
       setShowConfirm(false);
-      setRemoveError(null);
-      void invalidateSavedKeywords();
-      captureClientEvent("saved_keywords:bulk_remove", {
-        count: result.deletedCount,
-      });
-      toast.success(
-        `${result.deletedCount} keyword${result.deletedCount !== 1 ? "s" : ""} removed`,
-      );
     },
-    onError: (error) => {
-      setRemoveError(getStandardErrorMessage(error, "Remove failed."));
-    },
-  });
-
-  const tagMutation = useMutation({
-    mutationFn: (input: {
-      savedKeywordIds: string[];
-      addTags?: string[];
-      removeTagIds?: string[];
-    }) =>
-      updateSavedKeywordTags({
-        data: {
-          projectId,
-          savedKeywordIds: input.savedKeywordIds,
-          addTags: input.addTags,
-          removeTagIds: input.removeTagIds,
-        },
-      }),
-    onSuccess: (result) => {
+    onTagsUpdated: () => {
       setRowSelection({});
       setShowTagModal(false);
-      void invalidateSavedKeywords();
-      toast.success(
-        `Updated tags for ${result.taggedCount} keyword${result.taggedCount !== 1 ? "s" : ""}`,
-      );
-    },
-  });
-
-  const refreshMetricsMutation = useMutation({
-    mutationFn: () => refreshSavedKeywordMetrics({ data: { projectId } }),
-    onSuccess: (result) => {
-      void invalidateSavedKeywords();
-      toast.success(
-        `Updated stats for ${result.updated} keyword${result.updated !== 1 ? "s" : ""}`,
-      );
     },
   });
 
@@ -345,6 +326,12 @@ function SavedKeywordsPage() {
               setSelectedTagIds([]);
             }}
             onRowSelectionChange={setRowSelection}
+            onSaveNote={(savedKeywordId, notes) =>
+              noteMutation.mutateAsync({ savedKeywordId, notes })
+            }
+            onSavePriority={(savedKeywordId, priority) =>
+              priorityMutation.mutateAsync({ savedKeywordId, priority })
+            }
             onSortingChange={handleSortingChange}
             toolbar={
               <SavedKeywordsFilters

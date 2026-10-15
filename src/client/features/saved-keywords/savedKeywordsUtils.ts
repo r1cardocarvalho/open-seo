@@ -7,6 +7,8 @@ export const SAVED_KEYWORD_PAGE_SIZES = [50, 100, 250] as const;
 export const SAVED_KEYWORD_EXPORT_HEADERS = [
   ...KEYWORD_RESEARCH_HEADERS,
   "Tags",
+  "Priority",
+  "Notes",
   "Fetched At",
 ];
 
@@ -19,6 +21,8 @@ export function savedKeywordExportRow(row: SavedKeywordRow): CsvValue[] {
     row.keywordDifficulty ?? "",
     row.intent ?? "",
     row.tags.map((tag) => tag.name).join(", "),
+    row.priority ?? "",
+    row.notes ?? "",
     row.fetchedAt ?? "",
   ];
 }
@@ -32,7 +36,8 @@ export function toSavedKeywordSort(
     value === "cpc" ||
     value === "competition" ||
     value === "keywordDifficulty" ||
-    value === "fetchedAt"
+    value === "fetchedAt" ||
+    value === "priority"
   ) {
     return value;
   }

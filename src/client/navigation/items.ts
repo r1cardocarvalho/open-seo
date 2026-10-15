@@ -33,6 +33,11 @@ const projectNavItems = [
     icon: Search,
   },
   {
+    to: "/p/$projectId/serp-analysis" as const,
+    label: "SERP Analysis",
+    icon: SearchCheck,
+  },
+  {
     to: "/p/$projectId/saved" as const,
     label: "Saved Keywords",
     icon: Bookmark,
@@ -131,6 +136,7 @@ export function getProjectNavGroups(projectId: string) {
       label: "Research",
       items: [
         byPath("/p/$projectId/keywords"),
+        byPath("/p/$projectId/serp-analysis"),
         byPath("/p/$projectId/domain"),
         byPath("/p/$projectId/backlinks"),
       ],

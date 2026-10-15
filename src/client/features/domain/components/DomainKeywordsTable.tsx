@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Link2 } from "lucide-react";
 import {
   createColumnHelper,
   type ColumnDef,
@@ -26,6 +27,7 @@ import type {
 } from "@/client/features/domain/types";
 
 type Props = DataTableFrameProps & {
+  projectId: string;
   domain: string;
   rows: KeywordRow[];
   selectedKeywords: Set<string>;
@@ -39,6 +41,7 @@ type Props = DataTableFrameProps & {
 const keywordColumnHelper = createColumnHelper<KeywordRow>();
 
 export function DomainKeywordsTable({
+  projectId,
   domain,
   rows,
   selectedKeywords,
@@ -62,9 +65,24 @@ export function DomainKeywordsTable({
       makeSelectionColumn<KeywordRow>(selectAnchorRef),
       keywordColumnHelper.accessor("keyword", {
         header: () => "Keyword",
-        cell: ({ getValue }) => (
-          <span className="font-medium">{getValue()}</span>
-        ),
+        cell: ({ getValue }) => {
+          const keyword = getValue();
+          const search = new URLSearchParams({ q: keyword });
+          return (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="font-medium">{keyword}</span>
+              <a
+                href={`/p/${projectId}/keywords?${search.toString()}`}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`Open SERP for ${keyword}`}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Link2 className="size-3.5" />
+              </a>
+            </span>
+          );
+        },
       }),
       keywordColumnHelper.accessor("position", {
         header: () => (
@@ -149,7 +167,14 @@ export function DomainKeywordsTable({
         cell: ({ getValue }) => <ScoreBadge value={getValue()} />,
       }),
     ],
-    [currentSortOrder, domain, onSortClick, selectAnchorRef, sortMode],
+    [
+      currentSortOrder,
+      domain,
+      onSortClick,
+      projectId,
+      selectAnchorRef,
+      sortMode,
+    ],
   );
   const table = useDataTable({
     data: rows,

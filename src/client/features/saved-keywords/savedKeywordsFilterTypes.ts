@@ -7,6 +7,8 @@ export type SavedKeywordsFilterValues = {
   maxCpc: string;
   minKd: string;
   maxKd: string;
+  minPriority: string;
+  maxPriority: string;
 };
 
 export const EMPTY_SAVED_KEYWORDS_FILTERS: SavedKeywordsFilterValues = {
@@ -18,6 +20,8 @@ export const EMPTY_SAVED_KEYWORDS_FILTERS: SavedKeywordsFilterValues = {
   maxCpc: "",
   minKd: "",
   maxKd: "",
+  minPriority: "",
+  maxPriority: "",
 };
 
 export type AppliedSavedKeywordsFilters = {
@@ -29,6 +33,8 @@ export type AppliedSavedKeywordsFilters = {
   maxCpc?: number | null;
   minDifficulty?: number | null;
   maxDifficulty?: number | null;
+  minPriority?: number | null;
+  maxPriority?: number | null;
 };
 
 function parseTerms(value: string): string[] {
@@ -79,6 +85,8 @@ export function compileSavedKeywordsFilters(
     maxCpc: toFloatOrUndef(values.maxCpc, { min: 0 }),
     minDifficulty: toIntOrUndef(values.minKd, { min: 0, max: 100 }),
     maxDifficulty: toIntOrUndef(values.maxKd, { min: 0, max: 100 }),
+    minPriority: toIntOrUndef(values.minPriority, { min: 1, max: 10 }),
+    maxPriority: toIntOrUndef(values.maxPriority, { min: 1, max: 10 }),
   };
 }
 

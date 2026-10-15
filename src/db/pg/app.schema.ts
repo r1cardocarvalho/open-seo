@@ -106,6 +106,8 @@ export const savedKeywords = pgTable(
     keyword: text("keyword").notNull(),
     locationCode: integer("location_code").notNull().default(2840),
     languageCode: text("language_code").notNull().default("en"),
+    notes: text("notes"),
+    priority: integer("priority"),
     createdAt: timestampColumn("created_at").notNull().default(isoNow),
   },
   (table) => [

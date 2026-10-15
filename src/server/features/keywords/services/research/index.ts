@@ -4,6 +4,8 @@ export {
   saveKeywords,
   getSavedKeywords,
   exportSavedKeywords,
+  updateSavedKeywordNote,
+  updateSavedKeywordPriority,
   updateSavedKeywordTags,
   updateSavedKeywordTag,
   deleteSavedKeywordTag,

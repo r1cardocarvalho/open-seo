@@ -36,7 +36,7 @@ export function SavedKeywordsFilterPanel({
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
         <FilterRangeInputs
           form={form}
           title="Search Volume"
@@ -59,6 +59,14 @@ export function SavedKeywordsFilterPanel({
           maxName="maxKd"
           min={0}
           max={100}
+        />
+        <FilterRangeInputs
+          form={form}
+          title="Priority"
+          minName="minPriority"
+          maxName="maxPriority"
+          min={1}
+          max={10}
         />
       </div>
     </DataTableFilterPanel>
@@ -188,7 +196,14 @@ function TermsTokenInput({
 
 type RangeFieldName = Extract<
   keyof SavedKeywordsFilterValues,
-  "minVol" | "maxVol" | "minCpc" | "maxCpc" | "minKd" | "maxKd"
+  | "minVol"
+  | "maxVol"
+  | "minCpc"
+  | "maxCpc"
+  | "minKd"
+  | "maxKd"
+  | "minPriority"
+  | "maxPriority"
 >;
 
 function FilterRangeInputs({
@@ -202,8 +217,14 @@ function FilterRangeInputs({
 }: {
   form: SavedKeywordsFilterForm;
   title: string;
-  minName: Extract<RangeFieldName, "minVol" | "minCpc" | "minKd">;
-  maxName: Extract<RangeFieldName, "maxVol" | "maxCpc" | "maxKd">;
+  minName: Extract<
+    RangeFieldName,
+    "minVol" | "minCpc" | "minKd" | "minPriority"
+  >;
+  maxName: Extract<
+    RangeFieldName,
+    "maxVol" | "maxCpc" | "maxKd" | "maxPriority"
+  >;
   step?: string;
   min?: number;
   max?: number;

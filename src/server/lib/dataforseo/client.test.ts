@@ -104,6 +104,7 @@ vi.mock("@/server/lib/dataforseo/google-ads", () => ({
   fetchAdsSearchVolume: vi.fn(),
 }));
 vi.mock("@/server/lib/dataforseo/backlinks", () => ({
+  fetchBulkPagesSummary: vi.fn(),
   fetchBacklinksSummary: vi.fn(),
   fetchBacklinksRows: vi.fn(),
   fetchReferringDomains: vi.fn(),

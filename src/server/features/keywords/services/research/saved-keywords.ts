@@ -1,11 +1,14 @@
 import { KeywordResearchRepository } from "@/server/features/keywords/repositories/KeywordResearchRepository";
 import { jsonCodec } from "@/shared/json";
+import { AppError } from "@/server/lib/errors";
 import type {
   DeleteSavedKeywordTagInput,
   ExportSavedKeywordsInput,
   GetSavedKeywordsInput,
   RemoveSavedKeywordsInput,
   ResolvedSaveKeywordsInput,
+  UpdateSavedKeywordNoteInput,
+  UpdateSavedKeywordPriorityInput,
   UpdateSavedKeywordTagInput,
   UpdateSavedKeywordTagsInput,
 } from "@/types/schemas/keywords";
@@ -125,6 +128,8 @@ export async function getSavedKeywords(input: GetSavedKeywordsInput): Promise<{
     maxCpc: input.maxCpc,
     minDifficulty: input.minDifficulty,
     maxDifficulty: input.maxDifficulty,
+    minPriority: input.minPriority,
+    maxPriority: input.maxPriority,
     tagIds: input.tagIds,
     tagNames: input.tagNames,
     page: input.page,
@@ -154,6 +159,8 @@ export async function exportSavedKeywords(
     maxCpc: input.maxCpc,
     minDifficulty: input.minDifficulty,
     maxDifficulty: input.maxDifficulty,
+    minPriority: input.minPriority,
+    maxPriority: input.maxPriority,
     tagIds: input.tagIds,
     tagNames: input.tagNames,
     sort: input.sort,
@@ -161,6 +168,35 @@ export async function exportSavedKeywords(
   });
 
   return { rows: mapSavedKeywordRows(result.rows) };
+}
+
+export async function updateSavedKeywordNote(
+  input: UpdateSavedKeywordNoteInput,
+) {
+  const notes = input.notes.length === 0 ? null : input.notes;
+  const updated = await KeywordResearchRepository.updateSavedKeywordNote({
+    projectId: input.projectId,
+    savedKeywordId: input.savedKeywordId,
+    notes,
+  });
+  if (!updated) {
+    throw new AppError("NOT_FOUND", "Saved keyword not found");
+  }
+  return { notes };
+}
+
+export async function updateSavedKeywordPriority(
+  input: UpdateSavedKeywordPriorityInput,
+) {
+  const updated = await KeywordResearchRepository.updateSavedKeywordPriority({
+    projectId: input.projectId,
+    savedKeywordId: input.savedKeywordId,
+    priority: input.priority,
+  });
+  if (!updated) {
+    throw new AppError("NOT_FOUND", "Saved keyword not found");
+  }
+  return { priority: input.priority };
 }
 
 export async function updateSavedKeywordTags(
@@ -220,6 +256,8 @@ function mapSavedKeywordRows(
     intent: metric?.intent ?? null,
     monthlySearches: parseMonthlySearches(metric?.monthlySearches ?? null),
     fetchedAt: metric?.fetchedAt ?? null,
+    notes: row.notes ?? null,
+    priority: row.priority ?? null,
     tags: tags.map((tag) => ({
       id: tag.id,
       name: tag.name,

@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { FileDown, Save, Sheet } from "lucide-react";
 import {
   lastTwelveMonths,
@@ -288,6 +289,20 @@ function SerpPanel({ controller }: Props) {
         </Card>
       ) : null}
 
+      {controller.activeSerpKeyword ? (
+        <Link
+          to="/p/$projectId/serp-analysis"
+          params={{ projectId: controller.projectId }}
+          search={{
+            q: controller.activeSerpKeyword,
+            loc: controller.lastSearchLocationCode,
+            locName: controller.locationName,
+          }}
+          className="self-end text-sm text-primary hover:underline"
+        >
+          Detailed SERP analysis
+        </Link>
+      ) : null}
       <SerpAnalysisCard
         items={controller.serpResults}
         keyword={controller.activeSerpKeyword}

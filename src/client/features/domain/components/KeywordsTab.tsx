@@ -261,6 +261,7 @@ export function KeywordsTab({
       />
 
       <DomainKeywordsTable
+        projectId={projectId}
         domain={hostname}
         rows={rows}
         selectedKeywords={selectedKeywords}

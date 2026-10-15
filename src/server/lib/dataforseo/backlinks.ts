@@ -347,3 +347,34 @@ export type BacklinksItem = z.infer<typeof backlinksItemSchema>;
 export type ReferringDomainItem = z.infer<typeof referringDomainItemSchema>;
 export type DomainPageSummaryItem = z.infer<typeof domainPageSummaryItemSchema>;
 export type BacklinksHistoryItem = z.infer<typeof backlinksHistoryItemSchema>;
+
+/** One paid task for all ranking URLs, including their main-domain ranks. */
+export async function fetchBulkPagesSummary(input: { targets: string[] }) {
+  const path = "/v3/backlinks/bulk_pages_summary/live";
+  const response = await dataforseoPost(
+    path,
+    [
+      {
+        targets: input.targets,
+        rank_scale: "one_hundred",
+        include_subdomains: true,
+      },
+    ],
+    { classify: classifyBacklinksError },
+  );
+  const task = assertOk(response, assertOptions(path));
+  return {
+    data: parseTaskItems(
+      "backlinks-bulk-pages-summary",
+      task,
+      z.object({
+        url: z.string(),
+        rank: z.number().nullable().optional(),
+        main_domain_rank: z.number().nullable().optional(),
+        backlinks: z.number().nullable().optional(),
+        referring_domains: z.number().nullable().optional(),
+      }),
+    ),
+    billing: buildTaskBilling(task),
+  };
+}

@@ -8,6 +8,8 @@ import {
   removeSavedKeywordsSchema,
   refreshSavedKeywordMetricsSchema,
   serpAnalysisSchema,
+  updateSavedKeywordNoteSchema,
+  updateSavedKeywordPrioritySchema,
   updateSavedKeywordTagSchema,
   updateSavedKeywordTagsSchema,
 } from "@/types/schemas/keywords";
@@ -66,6 +68,26 @@ export const exportSavedKeywords = createServerFn({ method: "POST" })
   .validator(exportSavedKeywordsSchema)
   .handler(async ({ data, context }) => {
     return KeywordResearchService.exportSavedKeywords({
+      ...data,
+      projectId: context.projectId,
+    });
+  });
+
+export const updateSavedKeywordPriority = createServerFn({ method: "POST" })
+  .middleware(requireProjectContext)
+  .validator(updateSavedKeywordPrioritySchema)
+  .handler(async ({ data, context }) => {
+    return KeywordResearchService.updateSavedKeywordPriority({
+      ...data,
+      projectId: context.projectId,
+    });
+  });
+
+export const updateSavedKeywordNote = createServerFn({ method: "POST" })
+  .middleware(requireProjectContext)
+  .validator(updateSavedKeywordNoteSchema)
+  .handler(async ({ data, context }) => {
+    return KeywordResearchService.updateSavedKeywordNote({
       ...data,
       projectId: context.projectId,
     });

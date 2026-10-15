@@ -257,6 +257,7 @@ export function useKeywordResearchController(
   };
 
   return {
+    projectId: input.projectId,
     preferredGroupKeywords,
     setPreferredGroupKeywords,
     activeFilterCount,

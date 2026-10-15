@@ -35,6 +35,8 @@ export type SavedKeywordRow = {
   intent: string | null;
   monthlySearches: MonthlySearch[];
   fetchedAt: string | null;
+  notes: string | null;
+  priority: number | null;
   tags: SavedKeywordTag[];
 };
 

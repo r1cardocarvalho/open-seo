@@ -7,6 +7,7 @@ import {
 } from "@/server/lib/dataforseo/business";
 import {
   BACKLINKS_DEFAULT_LIMIT,
+  fetchBulkPagesSummary,
   fetchBacklinksHistory,
   fetchBacklinksRows,
   fetchBacklinksSummary,
@@ -214,6 +215,9 @@ export const dataforseoPricing = {
     ),
   },
   backlinks: {
+    bulkPagesSummary: priced(fetchBulkPagesSummary, (input) =>
+      backlinksUsd(input.targets.length),
+    ),
     summary: priced(fetchBacklinksSummary, () => backlinksUsd(1)),
     rows: priced(fetchBacklinksRows, (input) =>
       backlinksUsd(input.limit ?? BACKLINKS_DEFAULT_LIMIT),
