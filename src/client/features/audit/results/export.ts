@@ -1,3 +1,4 @@
+import { descriptionWordCount } from "@/client/features/audit/results/AuditResultsTableFilterLogic";
 import type { AuditResultsData } from "@/client/features/audit/results/types";
 import { getIssueDescriptor } from "@/shared/audit-issues";
 import type { CsvValue } from "@/client/lib/csv";
@@ -52,7 +53,10 @@ export function exportIssues(
 const PAGES_HEADERS = [
   "URL",
   "Status",
+  "Crawl Depth",
   "Title",
+  "Description",
+  "Description words",
   "H1",
   "Words",
   "Images",
@@ -64,7 +68,10 @@ function pagesRows(pages: AuditResultsData["pages"]): CsvValue[][] {
   return pages.map((page) => [
     page.url,
     page.statusCode,
+    page.crawlDepth,
     page.title ?? "",
+    page.metaDescription ?? "",
+    descriptionWordCount(page.metaDescription),
     page.h1Count,
     page.wordCount,
     page.imagesTotal,
@@ -118,7 +125,10 @@ export function exportPages(
     records: pages.map((page) => ({
       url: page.url,
       statusCode: page.statusCode,
+      crawlDepth: page.crawlDepth,
       title: page.title ?? "",
+      metaDescription: page.metaDescription ?? "",
+      descriptionWordCount: descriptionWordCount(page.metaDescription),
       h1Count: page.h1Count,
       wordCount: page.wordCount,
       imagesTotal: page.imagesTotal,

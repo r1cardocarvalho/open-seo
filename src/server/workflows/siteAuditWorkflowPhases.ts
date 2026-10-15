@@ -362,23 +362,21 @@ async function finalizeAudit(args: {
 
     const checksStartedAt = Date.now();
     console.info("Audit finalization started", { auditId });
+    const depths = await getAuditScratchpad(auditId).getCrawlDepths(
+      normalizeUrl(startUrl) ?? startUrl,
+    );
+    await AuditRepository.updateCrawlDepths(auditId, depths);
     const { issues, hasUnreadShells } = await runMultipageChecks({ auditId });
-    console.info("Audit multipage checks completed", {
-      auditId,
-      durationMs: Date.now() - checksStartedAt,
-      issueCount: issues.length,
-    });
-    const linksStartedAt = Date.now();
     const linkIssues = await runScratchpadLinkChecks(auditId, startUrl, {
       ...crawl,
       completed: crawl.completed && !hasUnreadShells,
     });
-    console.info("Audit link checks completed", {
-      auditId,
-      durationMs: Date.now() - linksStartedAt,
-      issueCount: linkIssues.length,
-    });
     issues.push(...linkIssues);
+    console.info("Audit finalization checks completed", {
+      auditId,
+      durationMs: Date.now() - checksStartedAt,
+      issueCount: issues.length,
+    });
     if (crawl.rateLimited) {
       issues.push({
         issueType: "crawl-rate-limited",

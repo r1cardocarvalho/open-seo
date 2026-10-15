@@ -35,28 +35,50 @@ export async function runMultipageChecks(input: {
         )
     ).map((row) => row.pageId),
   );
-  const pages: SlimPage[] = (
-    await db
-      .select({
-        id: auditPages.id,
-        url: auditPages.url,
-        statusCode: auditPages.statusCode,
-        fetchClass: auditPages.fetchClass,
-        redirectUrl: auditPages.redirectUrl,
-        title: auditPages.title,
-        metaDescription: auditPages.metaDescription,
-        contentHash: auditPages.contentHash,
-        wordCount: auditPages.wordCount,
-        isIndexable: auditPages.isIndexable,
-        canonicalUrl: auditPages.canonicalUrl,
-        headerCanonicalUrl: auditPages.headerCanonicalUrl,
-      })
-      .from(auditPages)
-      .where(eq(auditPages.auditId, input.auditId))
-  ).filter((page) => !shellPageIds.has(page.id));
+  const allPages = await db
+    .select({
+      id: auditPages.id,
+      url: auditPages.url,
+      statusCode: auditPages.statusCode,
+      fetchClass: auditPages.fetchClass,
+      redirectUrl: auditPages.redirectUrl,
+      title: auditPages.title,
+      metaDescription: auditPages.metaDescription,
+      contentHash: auditPages.contentHash,
+      wordCount: auditPages.wordCount,
+      isIndexable: auditPages.isIndexable,
+      canonicalUrl: auditPages.canonicalUrl,
+      headerCanonicalUrl: auditPages.headerCanonicalUrl,
+      crawlDepth: auditPages.crawlDepth,
+    })
+    .from(auditPages)
+    .where(eq(auditPages.auditId, input.auditId));
+  const pages: SlimPage[] = allPages.filter(
+    (page) => !shellPageIds.has(page.id),
+  );
+  const deepPages: DetectedIssue[] = allPages
+    .filter(
+      (page) =>
+        page.fetchClass === "ok" &&
+        page.statusCode !== null &&
+        page.statusCode >= 200 &&
+        page.statusCode < 300 &&
+        page.crawlDepth !== null &&
+        page.crawlDepth >= 5,
+    )
+    .map((page) => ({
+      issueType: "deep-page",
+      pageId: page.id,
+      pageUrl: page.url,
+      details: { crawlDepth: page.crawlDepth },
+    }));
 
   return {
-    issues: [...findDuplicates(pages), ...findRedirectChainsAndLoops(pages)],
+    issues: [
+      ...findDuplicates(pages),
+      ...findRedirectChainsAndLoops(pages),
+      ...deepPages,
+    ],
     hasUnreadShells: shellPageIds.size > 0,
   };
 }

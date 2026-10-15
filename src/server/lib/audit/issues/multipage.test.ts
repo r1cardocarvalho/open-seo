@@ -58,3 +58,29 @@ it("skips persisted app-shell coverage gaps while retaining genuine duplicate pa
     new Set(["readable-1", "readable-2"]),
   );
 });
+
+it("reports deep pages from finalized depths, excluding shallow, unknown and failed pages", async () => {
+  await client.execute("INSERT INTO audits (id) VALUES ('depth-audit')");
+  for (const [id, depth, status, fetchClass] of [
+    ["shallow", 4, 200, "ok"],
+    ["deep", 5, 200, "ok"],
+    ["unknown", null, 200, "ok"],
+    ["redirect", 6, 301, "ok"],
+    ["failed", 6, 500, "error"],
+    ["blocked", 6, 200, "blocked"],
+  ] as const) {
+    await client.execute({
+      sql: "INSERT INTO audit_pages (id, audit_id, url, crawl_depth, status_code, fetch_class) VALUES (?, 'depth-audit', ?, ?, ?, ?)",
+      args: [id, `https://example.com/${id}`, depth, status, fetchClass],
+    });
+  }
+  const { issues } = await runMultipageChecks({ auditId: "depth-audit" });
+  expect(issues.filter((issue) => issue.issueType === "deep-page")).toEqual([
+    {
+      issueType: "deep-page",
+      pageId: "deep",
+      pageUrl: "https://example.com/deep",
+      details: { crawlDepth: 5 },
+    },
+  ]);
+});

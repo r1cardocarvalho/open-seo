@@ -35,6 +35,7 @@ vi.mock("@/server/lib/audit/lighthouse", async (importOriginal) => {
 vi.mock("@/server/features/audit/repositories/AuditRepository", () => ({
   AuditRepository: {
     getPagesForAudit: getPagesForAuditMock,
+    updateCrawlDepths: vi.fn(),
     insertLighthouseResults: insertLighthouseResultsMock,
     updateAuditProgress: updateAuditProgressMock,
     hasPagesForAudit: vi.fn().mockResolvedValue(true),
@@ -222,10 +223,11 @@ describe("app-shell crawl coverage", () => {
       const finalize = vi
         .fn()
         .mockResolvedValue({ brokenLinks: [], orphanPages: [] });
-      // Only these two scratchpad methods are reached after mocked discovery/crawl.
+      // Discovery/crawl are mocked; finalization uses the scratchpad below.
       // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
       vi.mocked(getAuditScratchpad).mockReturnValue({
         runFinalizeChecks: finalize,
+        getCrawlDepths: vi.fn().mockResolvedValue([]),
         destroy: vi.fn(),
       } as unknown as ReturnType<typeof getAuditScratchpad>);
       pgStepMock.mockImplementation(

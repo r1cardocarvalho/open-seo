@@ -21,6 +21,7 @@ import {
 } from "@/client/features/audit/results/AuditResultsTableFilters";
 import {
   EMPTY_PAGES_FILTERS,
+  descriptionWordCount,
   filterPages,
   nullableNumberSort,
   nullableStringSort,
@@ -29,6 +30,18 @@ import {
 } from "@/client/features/audit/results/AuditResultsTableFilterLogic";
 
 const pageColumnHelper = createColumnHelper<PageRow>();
+
+function pageIdsForIssue(
+  issues: AuditResultsData["issues"],
+  issueType: string,
+): Set<string> {
+  return new Set(
+    issues
+      .filter((issue) => issue.issueType === issueType)
+      .map((issue) => issue.pageId)
+      .filter((pageId): pageId is string => pageId !== null),
+  );
+}
 
 /**
  * Path shown in the URL/redirect cells. Redirect sources on another host
@@ -85,9 +98,11 @@ const EmptyCell = () => (
 function buildPagesColumns({
   canonicalHost,
   missingTitlePageIds,
+  missingMetaDescriptionPageIds,
 }: {
   canonicalHost: string;
   missingTitlePageIds: Set<string>;
+  missingMetaDescriptionPageIds: Set<string>;
 }): ColumnDef<PageRow>[] {
   return [
     pageColumnHelper.accessor("url", {
@@ -125,6 +140,17 @@ function buildPagesColumns({
         ),
       sortingFn: nullableNumberSort,
     }),
+    pageColumnHelper.accessor("crawlDepth", {
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          label="Depth"
+          title="Shortest number of links from the starting URL (0). Redirects add no depth. A dash means no path was found in the crawled links."
+        />
+      ),
+      cell: ({ getValue }) => getValue() ?? <EmptyCell />,
+      sortingFn: nullableNumberSort,
+    }),
     pageColumnHelper.accessor("title", {
       header: ({ column }) => <SortableHeader column={column} label="Title" />,
       cell: ({ getValue, row }) => {
@@ -150,6 +176,41 @@ function buildPagesColumns({
       },
       sortingFn: nullableStringSort,
       meta: { cellClassName: "max-w-[360px]" },
+    }),
+    pageColumnHelper.accessor("metaDescription", {
+      header: ({ column }) => (
+        <SortableHeader column={column} label="Description" />
+      ),
+      cell: ({ getValue, row }) => {
+        if (!hasAnalyzedContent(row.original)) return <EmptyCell />;
+        const description = getValue();
+        if (description) {
+          return <span className="break-words">{description}</span>;
+        }
+        return missingMetaDescriptionPageIds.has(row.original.id) ? (
+          <span className="text-destructive text-xs">missing</span>
+        ) : (
+          <EmptyCell />
+        );
+      },
+      sortingFn: nullableStringSort,
+      meta: { cellClassName: "max-w-[360px]" },
+    }),
+    pageColumnHelper.display({
+      id: "descriptionWordCount",
+      header: ({ column }) => (
+        <SortableHeader column={column} label="Desc words" />
+      ),
+      cell: ({ row }) =>
+        hasAnalyzedContent(row.original) ? (
+          descriptionWordCount(row.original.metaDescription)
+        ) : (
+          <EmptyCell />
+        ),
+      enableSorting: true,
+      sortingFn: (left, right) =>
+        descriptionWordCount(left.original.metaDescription) -
+        descriptionWordCount(right.original.metaDescription),
     }),
     pageColumnHelper.accessor("h1Count", {
       header: ({ column }) => <SortableHeader column={column} label="H1" />,
@@ -221,11 +282,10 @@ export function PagesTable({
     () =>
       buildPagesColumns({
         canonicalHost: predominantHost(pages, startUrl),
-        missingTitlePageIds: new Set(
-          issues
-            .filter((issue) => issue.issueType === "missing-title")
-            .map((issue) => issue.pageId)
-            .filter((pageId): pageId is string => pageId !== null),
+        missingTitlePageIds: pageIdsForIssue(issues, "missing-title"),
+        missingMetaDescriptionPageIds: pageIdsForIssue(
+          issues,
+          "missing-meta-description",
         ),
       }),
     [issues, pages, startUrl],

@@ -49,6 +49,7 @@ import { Route as AppPProjectIdBacklinksRouteImport } from './routes/_app/p/$pro
 import { Route as AppPProjectIdBrandLookupRouteImport } from './routes/_app/p/$projectId/brand-lookup'
 import { Route as AppPProjectIdContextRouteImport } from './routes/_app/p/$projectId/context'
 import { Route as AppPProjectIdDomainRouteImport } from './routes/_app/p/$projectId/domain'
+import { Route as AppPProjectIdKeywordTemplateRouteImport } from './routes/_app/p/$projectId/keyword-template'
 import { Route as AppPProjectIdKeywordsRouteImport } from './routes/_app/p/$projectId/keywords'
 import { Route as AppPProjectIdPromptExplorerRouteImport } from './routes/_app/p/$projectId/prompt-explorer'
 import { Route as AppPProjectIdRankTrackingRouteImport } from './routes/_app/p/$projectId/rank-tracking'
@@ -274,6 +275,12 @@ const AppPProjectIdDomainRoute = AppPProjectIdDomainRouteImport.update({
   path: '/domain',
   getParentRoute: () => AppPProjectIdRouteRoute,
 } as any)
+const AppPProjectIdKeywordTemplateRoute =
+  AppPProjectIdKeywordTemplateRouteImport.update({
+    id: '/keyword-template',
+    path: '/keyword-template',
+    getParentRoute: () => AppPProjectIdRouteRoute,
+  } as any)
 const AppPProjectIdKeywordsRoute = AppPProjectIdKeywordsRouteImport.update({
   id: '/keywords',
   path: '/keywords',
@@ -437,6 +444,7 @@ export interface FileRoutesByFullPath {
   '/p/$projectId/brand-lookup': typeof AppPProjectIdBrandLookupRoute
   '/p/$projectId/context': typeof AppPProjectIdContextRoute
   '/p/$projectId/domain': typeof AppPProjectIdDomainRoute
+  '/p/$projectId/keyword-template': typeof AppPProjectIdKeywordTemplateRoute
   '/p/$projectId/keywords': typeof AppPProjectIdKeywordsRoute
   '/p/$projectId/prompt-explorer': typeof AppPProjectIdPromptExplorerRoute
   '/p/$projectId/rank-tracking': typeof AppPProjectIdRankTrackingRouteWithChildren
@@ -495,6 +503,7 @@ export interface FileRoutesByTo {
   '/p/$projectId/brand-lookup': typeof AppPProjectIdBrandLookupRoute
   '/p/$projectId/context': typeof AppPProjectIdContextRoute
   '/p/$projectId/domain': typeof AppPProjectIdDomainRoute
+  '/p/$projectId/keyword-template': typeof AppPProjectIdKeywordTemplateRoute
   '/p/$projectId/keywords': typeof AppPProjectIdKeywordsRoute
   '/p/$projectId/prompt-explorer': typeof AppPProjectIdPromptExplorerRoute
   '/p/$projectId/sam': typeof AppPProjectIdSamRoute
@@ -558,6 +567,7 @@ export interface FileRoutesById {
   '/_app/p/$projectId/brand-lookup': typeof AppPProjectIdBrandLookupRoute
   '/_app/p/$projectId/context': typeof AppPProjectIdContextRoute
   '/_app/p/$projectId/domain': typeof AppPProjectIdDomainRoute
+  '/_app/p/$projectId/keyword-template': typeof AppPProjectIdKeywordTemplateRoute
   '/_app/p/$projectId/keywords': typeof AppPProjectIdKeywordsRoute
   '/_app/p/$projectId/prompt-explorer': typeof AppPProjectIdPromptExplorerRoute
   '/_app/p/$projectId/rank-tracking': typeof AppPProjectIdRankTrackingRouteWithChildren
@@ -621,6 +631,7 @@ export interface FileRouteTypes {
     | '/p/$projectId/brand-lookup'
     | '/p/$projectId/context'
     | '/p/$projectId/domain'
+    | '/p/$projectId/keyword-template'
     | '/p/$projectId/keywords'
     | '/p/$projectId/prompt-explorer'
     | '/p/$projectId/rank-tracking'
@@ -679,6 +690,7 @@ export interface FileRouteTypes {
     | '/p/$projectId/brand-lookup'
     | '/p/$projectId/context'
     | '/p/$projectId/domain'
+    | '/p/$projectId/keyword-template'
     | '/p/$projectId/keywords'
     | '/p/$projectId/prompt-explorer'
     | '/p/$projectId/sam'
@@ -741,6 +753,7 @@ export interface FileRouteTypes {
     | '/_app/p/$projectId/brand-lookup'
     | '/_app/p/$projectId/context'
     | '/_app/p/$projectId/domain'
+    | '/_app/p/$projectId/keyword-template'
     | '/_app/p/$projectId/keywords'
     | '/_app/p/$projectId/prompt-explorer'
     | '/_app/p/$projectId/rank-tracking'
@@ -1069,6 +1082,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPProjectIdDomainRouteImport
       parentRoute: typeof AppPProjectIdRouteRoute
     }
+    '/_app/p/$projectId/keyword-template': {
+      id: '/_app/p/$projectId/keyword-template'
+      path: '/keyword-template'
+      fullPath: '/p/$projectId/keyword-template'
+      preLoaderRoute: typeof AppPProjectIdKeywordTemplateRouteImport
+      parentRoute: typeof AppPProjectIdRouteRoute
+    }
     '/_app/p/$projectId/keywords': {
       id: '/_app/p/$projectId/keywords'
       path: '/keywords'
@@ -1301,6 +1321,7 @@ interface AppPProjectIdRouteRouteChildren {
   AppPProjectIdBrandLookupRoute: typeof AppPProjectIdBrandLookupRoute
   AppPProjectIdContextRoute: typeof AppPProjectIdContextRoute
   AppPProjectIdDomainRoute: typeof AppPProjectIdDomainRoute
+  AppPProjectIdKeywordTemplateRoute: typeof AppPProjectIdKeywordTemplateRoute
   AppPProjectIdKeywordsRoute: typeof AppPProjectIdKeywordsRoute
   AppPProjectIdPromptExplorerRoute: typeof AppPProjectIdPromptExplorerRoute
   AppPProjectIdRankTrackingRoute: typeof AppPProjectIdRankTrackingRouteWithChildren
@@ -1322,6 +1343,7 @@ const AppPProjectIdRouteRouteChildren: AppPProjectIdRouteRouteChildren = {
   AppPProjectIdBrandLookupRoute: AppPProjectIdBrandLookupRoute,
   AppPProjectIdContextRoute: AppPProjectIdContextRoute,
   AppPProjectIdDomainRoute: AppPProjectIdDomainRoute,
+  AppPProjectIdKeywordTemplateRoute: AppPProjectIdKeywordTemplateRoute,
   AppPProjectIdKeywordsRoute: AppPProjectIdKeywordsRoute,
   AppPProjectIdPromptExplorerRoute: AppPProjectIdPromptExplorerRoute,
   AppPProjectIdRankTrackingRoute: AppPProjectIdRankTrackingRouteWithChildren,

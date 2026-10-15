@@ -2,6 +2,11 @@ import type { AuditResultsData } from "@/client/features/audit/results/types";
 import type { PageFetchClass } from "@/shared/audit-fetch-class";
 
 export type PageRow = AuditResultsData["pages"][number];
+
+export function descriptionWordCount(description: string | null): number {
+  const text = description?.trim();
+  return text ? text.split(/\s+/).length : 0;
+}
 type PerformanceResultRow = AuditResultsData["lighthouse"][number];
 export type PerformanceRowData = PerformanceResultRow & {
   pageUrl: string | null;

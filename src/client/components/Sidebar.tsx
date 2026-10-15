@@ -1,4 +1,9 @@
-import { Link, useLocation, useMatchRoute } from "@tanstack/react-router";
+import {
+  Link,
+  linkOptions,
+  useLocation,
+  useMatchRoute,
+} from "@tanstack/react-router";
 import type { LinkOptions } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState, type ComponentType } from "react";
@@ -10,6 +15,7 @@ import {
   CreditCard,
   LogOut,
   Settings,
+  Table2,
   User,
 } from "lucide-react";
 import { organizationContextQueryOptions } from "@/client/features/team/organizationQueries";
@@ -17,6 +23,7 @@ import { switchOrganization } from "@/serverFunctions/organization";
 import {
   connectNavGroup,
   getProjectNavGroups,
+  otherToolsNavItems,
 } from "@/client/navigation/items";
 import { ProjectSwitcher } from "@/client/features/projects/ProjectSwitcher";
 import {
@@ -53,6 +60,30 @@ import {
 
 const navButtonClass =
   "relative text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:before:absolute data-active:before:inset-y-1 data-active:before:left-0 data-active:before:w-[3px] data-active:before:rounded-r-full data-active:before:bg-primary";
+
+function SidebarExternalNavLink({
+  icon: Icon,
+  label,
+  href,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+  href: string;
+}) {
+  const { setOpenMobile } = useSidebar();
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        render={<a href={href} target="_blank" rel="noreferrer" />}
+        className={navButtonClass}
+        onClick={() => setOpenMobile(false)}
+      >
+        <Icon className="size-4" />
+        <span>{label}</span>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
 
 function SidebarNavLink({
   icon: Icon,
@@ -193,6 +224,35 @@ export function Sidebar({
                 </SidebarGroupContent>
               </SidebarGroup>
             ))}
+            <SidebarGroup className="py-1">
+              <SidebarGroupLabel className="h-7 uppercase tracking-wider text-sidebar-foreground/40">
+                Other tools
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {projectId !== null || navPlaceholder ? (
+                    <SidebarNavLink
+                      icon={Table2}
+                      label="Compact Keywords template"
+                      linkProps={linkOptions({
+                        to: "/p/$projectId/keyword-template",
+                        params: { projectId: projectId ?? "" },
+                        search: {},
+                      })}
+                      placeholder={navPlaceholder}
+                    />
+                  ) : null}
+                  {otherToolsNavItems.map((item) => (
+                    <SidebarExternalNavLink
+                      key={item.href}
+                      icon={item.icon}
+                      label={item.label}
+                      href={item.href}
+                    />
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
           </nav>
         )}
       </SidebarContent>

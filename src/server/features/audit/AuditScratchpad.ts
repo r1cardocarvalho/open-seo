@@ -20,6 +20,7 @@
  */
 import { DurableObject, env } from "cloudflare:workers";
 import type { CrawlThrottleState } from "@/server/lib/audit/crawl-throttle";
+import { calculateCrawlDepths } from "./crawl-depth";
 import {
   BROKEN_LINKS_SQL,
   ORPHAN_PAGES_SQL,
@@ -28,7 +29,7 @@ import {
 
 export interface ClaimedUrl {
   url: string;
-  /** Clicks from the start URL; null when only reachable via sitemap. */
+  /** Discovery depth; final shortest paths are computed after the crawl. */
   depth: number | null;
   inSitemap: boolean;
 }
@@ -233,6 +234,30 @@ export class AuditScratchpad extends DurableObject {
         url,
       );
     }
+  }
+
+  async getCrawlDepths(startUrl: string) {
+    const sql = this.ctx.storage.sql;
+    const pages = sql.exec<{
+      pageId: string;
+      url: string;
+      redirectUrl: string | null;
+    }>(
+      `SELECT page_id AS pageId, url, redirect_url AS redirectUrl FROM page_mirror`,
+    );
+    return calculateCrawlDepths(pages, startUrl, (pageId) =>
+      sql
+        .exec<{ target: string }>(
+          `SELECT j.value AS target FROM page_links p, json_each(p.targets_json) j
+           WHERE p.page_id = ?
+           UNION
+           SELECT target_url AS target FROM links WHERE source_page_id = ?`,
+          pageId,
+          pageId,
+        )
+        .toArray()
+        .map((row) => row.target),
+    );
   }
 
   async getStats(): Promise<FrontierStats> {

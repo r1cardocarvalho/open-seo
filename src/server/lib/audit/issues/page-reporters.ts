@@ -30,7 +30,6 @@ const META_DESCRIPTION_MAX_CHARS = 160;
 const META_DESCRIPTION_MIN_CHARS = 70;
 const THIN_CONTENT_WORDS = 150;
 const SLOW_RESPONSE_MS = 1500;
-const DEEP_PAGE_DEPTH = 5;
 
 function hasHeadingLevelSkip(headingOrder: number[]): boolean {
   for (let i = 1; i < headingOrder.length; i++) {
@@ -101,10 +100,6 @@ export function runPageReporters(page: CrawledPageResult): DetectedIssue[] {
   const effectiveCanonical = page.canonicalUrl ?? page.headerCanonicalUrl;
   if (effectiveCanonical && effectiveCanonical !== page.url) {
     report("canonicalized-page", { canonicalUrl: effectiveCanonical });
-  }
-
-  if (page.crawlDepth !== null && page.crawlDepth >= DEEP_PAGE_DEPTH) {
-    report("deep-page", { crawlDepth: page.crawlDepth });
   }
 
   // The initial app shell cannot establish what the rendered page is missing.

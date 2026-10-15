@@ -76,7 +76,6 @@ describe("runPageReporters", () => {
         canonicalUrl: "https://example.com/canonical",
         headerCanonicalUrl: "https://example.com/header-canonical",
         responseTimeMs: 2000,
-        crawlDepth: 5,
       }),
     );
     expect(types).toEqual([
@@ -84,7 +83,6 @@ describe("runPageReporters", () => {
       "noindex-page",
       "canonical-conflict",
       "canonicalized-page",
-      "deep-page",
       "javascript-rendering-suspected",
     ]);
   });
@@ -128,7 +126,6 @@ describe("runPageReporters", () => {
     [{ headingOrder: [1, 2, 4] }, "heading-order-skip"],
     [{ wordCount: 50 }, "thin-content"],
     [{ responseTimeMs: 3000 }, "slow-response"],
-    [{ crawlDepth: 6 }, "deep-page"],
     [{ links: [] }, "no-outgoing-links"],
   ])("flags %o as %s", (overrides, issueType) => {
     expect(issueTypes(makePage(overrides))).toContain(issueType);
@@ -140,7 +137,6 @@ describe("runPageReporters", () => {
       { wordCount: 50, isIndexable: false, robotsMeta: "noindex" },
       "thin-content",
     ],
-    [{ crawlDepth: null }, "deep-page"],
     [{ links: [], isIndexable: false }, "no-outgoing-links"],
   ])("does not flag %o as %s", (overrides, issueType) => {
     expect(issueTypes(makePage(overrides))).not.toContain(issueType);

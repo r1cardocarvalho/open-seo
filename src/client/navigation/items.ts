@@ -4,7 +4,10 @@ import {
   Brain,
   ChartLine,
   ClipboardCheck,
+  FileSearch,
   FileText,
+  Gauge,
+  SearchCheck,
   Globe,
   LayoutDashboard,
   Link2,
@@ -163,3 +166,22 @@ export function getProjectNavGroups(projectId: string) {
 export const dataforseoHelpLinkOptions = linkOptions({
   to: "/help/dataforseo-api-key",
 });
+
+// External tools. Each opens in a new tab and does not depend on a project.
+export const otherToolsNavItems = [
+  {
+    label: "SERP Simulator",
+    href: "https://mangools.com/free-seo-tools/serp-simulator",
+    icon: FileSearch,
+  },
+  {
+    label: "SERP Checker",
+    href: "https://ahrefs.com/serp-checker",
+    icon: SearchCheck,
+  },
+  {
+    label: "Keyword Score",
+    href: "https://www.seobility.net/en/keywordcheck/check/",
+    icon: Gauge,
+  },
+];

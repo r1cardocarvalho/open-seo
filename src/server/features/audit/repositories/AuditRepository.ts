@@ -264,6 +264,20 @@ async function getIssuesForAudit(
   });
 }
 
+async function updateCrawlDepths(
+  auditId: string,
+  depths: Array<{ pageId: string; depth: number | null }>,
+) {
+  await executeInBatches(depths, (tx, page) =>
+    tx
+      .update(auditPages)
+      .set({ crawlDepth: page.depth })
+      .where(
+        and(eq(auditPages.auditId, auditId), eq(auditPages.id, page.pageId)),
+      ),
+  );
+}
+
 async function getPagesForAudit(auditId: string) {
   return db
     .select({
@@ -426,6 +440,7 @@ export const AuditRepository = {
   getLatestAuditForProject,
   getIssuesForAudit,
   getPagesForAudit,
+  updateCrawlDepths,
   countPagesByFetchClass,
   hasPagesForAudit,
   getAuditsByProject,
